@@ -1,0 +1,36 @@
+{
+  "name": "Comportement Racine",
+  "type": "Selector",
+  "children": [
+    {
+      "name": "Tenter d'ouvrir la porte",
+      "type": "Sequence",
+      "children": [
+        {
+          "name": "Vérifier Clé",
+          "type": "Condition",
+          "actionName": "hasKey"
+        },
+        {
+          "name": "Déverrouiller et Ouvrir",
+          "type": "Action",
+          "actionName": "openDoor"
+        }
+      ]
+    },
+    {
+      "name": "Porte Bloquée",
+      "type": "Inverter",
+      "child": {
+        "name": "Est-ce défonçable ?",
+        "type": "Condition",
+        "actionName": "canBreakDoor"
+      }
+    },
+    {
+      "name": "Action de secours : Frapper à la porte",
+      "type": "Action",
+      "actionName": "knockDoor"
+    }
+  ]
+}

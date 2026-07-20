@@ -1,0 +1,15 @@
+{
+  "name": "behaviortree",
+  "version": "1.0.0",
+  "description": "Moteur Behavior Tree optimisé avec ReScript",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "start": "node server.mjs",
+    "build": "rescript",
+    "dev": "rescript build -w"
+  },
+  "devDependencies": {
+    "rescript": "^11.0.0"
+  }
+}

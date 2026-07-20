@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BehaviorTree.js - Demo Visuelle</title>
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --card-bg: #111622;
+            --node-bg: #182030;
+            --border-color: #26334d;
+            --text-color: #e2e8f0;
+            --text-muted: #94a3b8;
+            
+            /* Status Colors */
+            --idle-color: #475569;
+            --running-color: #f59e0b;
+            --running-glow: rgba(245, 158, 11, 0.4);
+            --success-color: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.3);
+            --fail-color: #ef4444;
+            --fail-glow: rgba(239, 68, 68, 0.3);
+            --accent-color: #6366f1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(16, 185, 129, 0.05) 0%, transparent 40%);
+        }
+
+        /* Container Principal */
+        .demo-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 28px;
+            width: 520px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #10b981, #f59e0b);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 1.5rem;
+            background: rgba(99, 102, 241, 0.15);
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge-tree {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            background: #1e293b;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            color: var(--text-muted);
+        }
+
+        /* Liste des Nœuds */
+        .tree-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Style individuel d'un Nœud */
+        .node {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--node-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--idle-color);
+            border-radius: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* Effets HOVER */
+        .node:hover {
+            transform: translateX(4px);
+            border-color: #3b82f6;
+            background: #1e283d;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .node-type {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 8px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #a5b4fc;
+        }
+
+        .node-title {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: var(--text-color);
+        }
+
+        .status-pill {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--idle-color);
+            transition: all 0.3s ease;
+        }
+
+        /* ÉTATS DYNAMIQUES */
+        .node.RUNNING {
+            border-left-color: var(--running-color);
+            background: #261f13;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px var(--running-glow);
+        }
+        .node.RUNNING .status-pill {
+            background: var(--running-color);
+            color: #000;
+            box-shadow: 0 0 8px var(--running-glow);
+        }
+
+        .node.SUCCESS {
+            border-left-color: var(--success-color);
+            background: #11241d;
+            box-shadow: 0 0 15px var(--success-glow);
+        }
+        .node.SUCCESS .status-pill {
+            background: var(--success-color);
+            color: #fff;
+        }
+
+        .node.FAIL {
+            border-left-color: var(--fail-color);
+            background: #281517;
+            box-shadow: 0 0 15px var(--fail-glow);
+        }
+        .node.FAIL .status-pill {
+            background: var(--fail-color);
+            color: #fff;
+        }
+
+        /* Bouton Rejouer */
+        .controls {
+            margin-top: 24px;
+        }
+
+        .btn-replay {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-replay:hover {
+            opacity: 0.95;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-replay:active {
+            transform: translateY(1px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="demo-card">
+        <div class="header">
+            <div class="title-group">
+                <span class="logo-icon">🧠</span>
+                <div>
+                    <h1>BehaviorTree.js</h1>
+                </div>
+            </div>
+            <span class="badge-tree">JSON Loaded</span>
+        </div>
+
+        <div id="tree-ui" class="tree-container"></div>
+
+        <div class="controls">
+            <button class="btn-replay" onclick="runDemo()">
+                <span>▶ Rejouer l'animation (Demo 10s)</span>
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { BehaviorTree, NodeRegistry, Blackboard } from './BehaviorTree.js';
+
+        window.updateNodeUI = function(nodeId, status) {
+            const el = document.getElementById(`node-${nodeId}`);
+            if (el) {
+                el.className = `node ${status}`;
+                const pill = el.querySelector('.status-pill');
+                if (pill) pill.innerText = status;
+            }
+        };
+
+        const registry = new NodeRegistry();
+
+        registry.registerAction('hasKey', async (ctx) => {
+            updateNodeUI('hasKey', 'RUNNING');
+            await new Promise(r => setTimeout(r, 2000));
+            const hasKey = ctx.get('hasKey') === true;
+            updateNodeUI('hasKey', hasKey ? 'SUCCESS' : 'FAIL');
+            await new Promise(r => setTimeout(r, 1000));
+            return hasKey ? 'SUCCESS' : 'FAIL';
+        });
+
+        registry.registerAction('openDoor', async () => {
+            updateNodeUI('openDoor', 'RUNNING');
+            await new Promise(r => setTimeout(r, 2500));
+            updateNodeUI('openDoor', 'SUCCESS');
+            await new Promise(r => setTimeout(r, 1000));
+            return 'SUCCESS';
+        });
+
+        registry.registerAction('canBreakDoor', async (ctx) => {
+            updateNodeUI('canBreakDoor', 'RUNNING');
+            await new Promise(r => setTimeout(r, 2000));
+            const canBreak = ctx.get('canBreak') === true;
+            updateNodeUI('canBreakDoor', canBreak ? 'SUCCESS' : 'FAIL');
+            await new Promise(r => setTimeout(r, 1000));
+            return canBreak ? 'SUCCESS' : 'FAIL';
+        });
+
+        registry.registerAction('knockDoor', async () => {
+            updateNodeUI('knockDoor', 'RUNNING');
+            await new Promise(r => setTimeout(r, 2000));
+            updateNodeUI('knockDoor', 'SUCCESS');
+            await new Promise(r => setTimeout(r, 1000));
+            return 'SUCCESS';
+        });
+
+        function renderJSONToHTML(node, container, indent = 0) {
+            const div = document.createElement('div');
+            
+            // Évite d'utiliser des regex problématiques
+            const cleanName = (node.actionName || node.name).split(' ').join('-');
+            
+            div.id = `node-${cleanName}`;
+            div.className = 'node';
+            div.style.marginLeft = `${indent * 16}px`;
+            
+            div.innerHTML = `
+                <div>
+                    <span class="node-type">${node.type}</span>
+                    <span class="node-title">${node.name}</span>
+                </div>
+                <span class="status-pill">IDLE</span>
+            `;
+            
+            container.appendChild(div);
+
+            if (node.children) {
+                node.children.forEach(child => renderJSONToHTML(child, container, indent + 1));
+            } else if (node.child) {
+                renderJSONToHTML(node.child, container, indent + 1);
+            }
+        }
+
+        window.runDemo = async function() {
+            const container = document.getElementById('tree-ui');
+            container.innerHTML = '';
+
+            const response = await fetch('./test.json');
+            const treeJSON = await response.json();
+
+            renderJSONToHTML(treeJSON, container);
+
+            const tree = BehaviorTree.fromJSON(treeJSON, registry);
+            const blackboard = new Blackboard();
+            
+            blackboard.set('hasKey', true);
+
+            await new Promise(r => setTimeout(r, 800));
+
+            updateNodeUI('Comportement-Racine', 'RUNNING');
+            await new Promise(r => setTimeout(r, 600));
+            
+            updateNodeUI("Tenter-d'ouvrir-la-porte", 'RUNNING');
+            await new Promise(r => setTimeout(r, 600));
+
+            await tree.update(blackboard);
+
+            await new Promise(r => setTimeout(r, 500));
+            updateNodeUI("Tenter-d'ouvrir-la-porte", 'SUCCESS');
+            updateNodeUI('Comportement-Racine', 'SUCCESS');
+        };
+
+        window.onload = runDemo;
+    </script>
+</body>
+</html>
